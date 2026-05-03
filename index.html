@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriTrack Inventory System</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="app-container">
+    <aside class="sidebar">
+        <h2>AgriTrack</h2>
+        <nav>
+            <button class="nav-btn active" data-module="receive">📦 Receive Products (Main WH)</button>
+            <button class="nav-btn" data-module="sale">💰 Record Sale</button>
+            <button class="nav-btn" data-module="newTransfer">🚚 New Transfer</button>
+            <button class="nav-btn" data-module="receiveTransfer">✅ Receive Transfer</button>
+            <button class="nav-btn" data-module="stock">📊 Current Stock</button>
+            <button class="nav-btn" data-module="cashClose">💵 Daily Cash Close</button>
+            <button class="nav-btn" data-module="weekly">📈 Weekly Report</button>
+            <button class="nav-btn" data-module="updatePrices">🏷️ Update Selling Prices</button>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div id="module-container">
+            <p>Loading...</p>
+        </div>
+    </main>
+</div>
+<script src="config.js"></script>
+<script src="modules/receive_products.js"></script>
+<script src="modules/record_sale.js"></script>
+<script src="modules/new_transfer.js"></script>
+<script src="modules/receive_transfer.js"></script>
+<script src="modules/current_stock.js"></script>
+<script src="modules/daily_cash_close.js"></script>
+<script src="modules/weekly_report.js"></script>
+<script src="modules/update_prices.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
