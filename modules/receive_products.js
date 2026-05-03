@@ -1,155 +1,127 @@
+console.log("Supabase client:", supabase);
 async function renderReceiveProducts(containerId) {
     const container = document.getElementById(containerId);
+    if (!container) {
+        console.error("Container not found:", containerId);
+        return;
+    }
+    
     container.innerHTML = `
         <div class="card">
             <h2>Receive Products at Main Warehouse</h2>
-            <p>Select product, enter quantity received and selling price. Total value auto‑calculates.</p>
-            <div style="overflow-x: auto;">
-                <table id="receiveTable">
-                    <thead><tr><th>Product</th><th>Unit</th><th>Packing Size</th><th>Quantity</th><th>Selling Price (MWK)</th><th>Total Value (MWK)</th></tr></thead>
-                    <tbody id="receiveTableBody"></tbody>
-                </table>
-            </div>
-            <button id="addReceiveRowBtn">+ Add Row</button>
-            <button id="saveReceiveBtn">Save All to Main Warehouse</button>
-            <div id="receiveMessage" class="message" style="display:none;"></div>
+            <div id="receiveStatus">Checking Supabase connection...</div>
         </div>
     `;
-
-    let products = await getProducts();
-    if (!products.length) {
-        showMessage(containerId, 'No product catalog. Insert master products first.', 'error');
+    
+    // Ensure supabase is defined
+    if (typeof supabase === 'undefined') {
+        document.getElementById('receiveStatus').innerHTML = "Error: Supabase client not loaded. Check config.js and network.";
         return;
     }
-
-    let rows = [];
-
-    function addRow() {
-        rows.push({ productId: null, unit: '', packSize: '', qty: 0, price: 0, total: 0 });
-        renderTable();
-    }
-
-    function renderTable() {
-        const tbody = document.getElementById('receiveTableBody');
-        tbody.innerHTML = '';
-        rows.forEach((row, idx) => {
-            const tr = document.createElement('tr');
-            // Product dropdown
-            const tdProd = document.createElement('td');
-            const select = document.createElement('select');
-            select.className = 'product-select';
-            select.dataset.idx = idx;
-            const emptyOpt = document.createElement('option');
-            emptyOpt.value = '';
-            emptyOpt.textContent = '-- Select Product --';
-            select.appendChild(emptyOpt);
-            products.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.textContent = `${p.name} - ${p.pack_size} (${p.unit})`;
-                if (p.id == row.productId) opt.selected = true;
-                select.appendChild(opt);
-            });
-            select.addEventListener('change', (e) => onProductChange(idx, e.target.value));
-            tdProd.appendChild(select);
-
-            // Unit (readonly)
-            const tdUnit = document.createElement('td');
-            tdUnit.textContent = row.unit || '—';
-            tdUnit.style.backgroundColor = '#f9f9f9';
-            // Packing size
-            const tdPack = document.createElement('td');
-            tdPack.textContent = row.packSize || '—';
-            tdPack.style.backgroundColor = '#f9f9f9';
-            // Quantity
-            const tdQty = document.createElement('td');
-            const qtyInput = document.createElement('input');
-            qtyInput.type = 'number';
-            qtyInput.step = '0.5';
-            qtyInput.value = row.qty;
-            qtyInput.addEventListener('input', (e) => {
-                row.qty = parseFloat(e.target.value) || 0;
-                updateTotal(idx);
-            });
-            tdQty.appendChild(qtyInput);
-            // Price
-            const tdPrice = document.createElement('td');
-            const priceInput = document.createElement('input');
-            priceInput.type = 'number';
-            priceInput.step = '100';
-            priceInput.value = row.price;
-            priceInput.addEventListener('input', (e) => {
-                row.price = parseFloat(e.target.value) || 0;
-                updateTotal(idx);
-            });
-            tdPrice.appendChild(priceInput);
-            // Total
-            const tdTotal = document.createElement('td');
-            tdTotal.textContent = row.total.toFixed(2);
-            tdTotal.style.backgroundColor = '#f9f9f9';
-
-            tr.appendChild(tdProd);
-            tr.appendChild(tdUnit);
-            tr.appendChild(tdPack);
-            tr.appendChild(tdQty);
-            tr.appendChild(tdPrice);
-            tr.appendChild(tdTotal);
-            tbody.appendChild(tr);
-        });
-    }
-
-    function updateTotal(idx) {
-        const row = rows[idx];
-        row.total = row.qty * row.price;
-        const tbody = document.getElementById('receiveTableBody');
-        const tr = tbody.children[idx];
-        if (tr) tr.cells[5].textContent = row.total.toFixed(2);
-    }
-
-    function onProductChange(idx, productId) {
-        const product = products.find(p => p.id == productId);
-        if (product) {
-            rows[idx].productId = product.id;
-            rows[idx].unit = product.unit;
-            rows[idx].packSize = product.pack_size;
-        } else {
-            rows[idx].productId = null;
-            rows[idx].unit = '';
-            rows[idx].packSize = '';
-        }
-        renderTable();
-    }
-
-    async function saveAll() {
-        const validRows = rows.filter(r => r.productId && r.qty > 0 && r.price > 0);
-        if (!validRows.length) {
-            showMessage(containerId, 'No valid rows to save.', 'error');
+    
+    // Test connection
+    document.getElementById('receiveStatus').innerHTML = "Loading products...";
+    try {
+        const { data: products, error } = await supabase
+            .from('products')
+            .select('id, name, unit, pack_size, current_price');
+        
+        if (error) throw error;
+        
+        if (!products || products.length === 0) {
+            document.getElementById('receiveStatus').innerHTML = "No products found. Please insert master products via Supabase SQL.";
             return;
         }
-        let success = 0, errors = [];
-        for (const row of validRows) {
+        
+        // Build form
+        document.getElementById('receiveStatus').innerHTML = `
+            <p>✅ Found ${products.length} products. Ready to receive.</p>
+            <label>Select Product:</label>
+            <select id="productSelect">
+                <option value="">-- Choose --</option>
+                ${products.map(p => `<option value="${p.id}">${p.name} - ${p.pack_size} (${p.unit})</option>`).join('')}
+            </select>
+            <br/><br/>
+            <label>Quantity Received:</label>
+            <input type="number" id="qtyReceived" step="0.5" min="0" value="0">
+            <br/><br/>
+            <label>Selling Price per Unit (MWK):</label>
+            <input type="number" id="pricePerUnit" step="100" min="0" value="0">
+            <br/><br/>
+            <button id="addToWarehouseBtn">Add to Main Warehouse</button>
+            <div id="previewArea" style="margin-top:15px;"></div>
+        `;
+        
+        // Preview current stock
+        const productSelect = document.getElementById('productSelect');
+        const preview = document.getElementById('previewArea');
+        
+        productSelect.addEventListener('change', async () => {
+            const productId = parseInt(productSelect.value);
+            if (!productId) {
+                preview.innerHTML = '';
+                return;
+            }
+            const { data: inv } = await supabase
+                .from('inventory')
+                .select('quantity')
+                .eq('location_id', 1)
+                .eq('product_id', productId)
+                .maybeSingle();
+            const qtyNow = inv ? inv.quantity : 0;
+            preview.innerHTML = `<p>Current stock at Main Warehouse: <strong>${qtyNow}</strong></p>`;
+        });
+        
+        // Add button
+        document.getElementById('addToWarehouseBtn').addEventListener('click', async () => {
+            const productId = parseInt(productSelect.value);
+            const qty = parseFloat(document.getElementById('qtyReceived').value);
+            const price = parseFloat(document.getElementById('pricePerUnit').value);
+            
+            if (!productId) {
+                alert("Please select a product.");
+                return;
+            }
+            if (isNaN(qty) || qty <= 0) {
+                alert("Quantity must be positive.");
+                return;
+            }
+            if (isNaN(price) || price <= 0) {
+                alert("Price must be positive.");
+                return;
+            }
+            
             try {
-                // Update current_price
-                await supabase.from('products').update({ current_price: row.price }).eq('id', row.productId);
-                // Update inventory at Main Warehouse (location_id = 1)
-                const { data: inv } = await supabase.from('inventory').select('id, quantity').eq('location_id', 1).eq('product_id', row.productId);
-                if (inv && inv.length) {
-                    const newQty = inv[0].quantity + row.qty;
-                    await supabase.from('inventory').update({ quantity: newQty, last_updated: new Date() }).eq('id', inv[0].id);
+                // Update current price
+                await supabase.from('products').update({ current_price: price }).eq('id', productId);
+                
+                // Update inventory
+                const { data: inv } = await supabase
+                    .from('inventory')
+                    .select('id, quantity')
+                    .eq('location_id', 1)
+                    .eq('product_id', productId)
+                    .maybeSingle();
+                
+                if (inv) {
+                    const newQty = inv.quantity + qty;
+                    await supabase.from('inventory').update({ quantity: newQty }).eq('id', inv.id);
                 } else {
-                    await supabase.from('inventory').insert({ location_id: 1, product_id: row.productId, quantity: row.qty, last_updated: new Date() });
+                    await supabase.from('inventory').insert({ location_id: 1, product_id: productId, quantity: qty });
                 }
-                success++;
-            } catch (err) { errors.push(err.message); }
-        }
-        if (success) showMessage(containerId, `Saved ${success} product(s) to Main Warehouse.`, 'success');
-        if (errors.length) showMessage(containerId, `Errors: ${errors.join('; ')}`, 'error');
-        // Reset qty/price
-        rows.forEach(r => { if (r.productId) { r.qty = 0; r.price = 0; r.total = 0; } });
-        renderTable();
+                
+                alert(`Success! Added ${qty} units to Main Warehouse.`);
+                document.getElementById('qtyReceived').value = '0';
+                document.getElementById('pricePerUnit').value = '0';
+                productSelect.dispatchEvent(new Event('change'));
+            } catch (err) {
+                alert("Error: " + err.message);
+                console.error(err);
+            }
+        });
+        
+    } catch (err) {
+        console.error("Failed to load products:", err);
+        document.getElementById('receiveStatus').innerHTML = `<p class="error">Error loading products: ${err.message}</p>`;
     }
-
-    document.getElementById('addReceiveRowBtn').addEventListener('click', addRow);
-    document.getElementById('saveReceiveBtn').addEventListener('click', saveAll);
-    for (let i = 0; i < 3; i++) addRow();
 }

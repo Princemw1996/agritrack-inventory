@@ -1,8 +1,11 @@
+// Supabase credentials
 const SUPABASE_URL = "https://njzjazzpmeaoufrqqldm.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qemphenpwbWVhb3VmcnFxbGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3ODQ0MjQsImV4cCI6MjA5MzM2MDQyNH0.YW06qCB-mgeheuVbdH9_2U8qDoytqb7v0NFZg1FhKKI";
 
+// Create the supabase client (THIS IS THE CRITICAL LINE)
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Helper functions
 async function getLocations() {
     const { data, error } = await supabase.from('locations').select('*');
     if (error) throw error;
@@ -28,3 +31,6 @@ function showMessage(containerId, message, type) {
     msgDiv.style.display = 'block';
     setTimeout(() => { msgDiv.style.display = 'none'; }, 4000);
 }
+
+// For debugging: log that config loaded and supabase is ready
+console.log("config.js loaded. supabase client created:", typeof supabase.from);
