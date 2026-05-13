@@ -3,31 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgriTrack – Full Inventory System</title>
+    <title>AgriTrack – Fully Functional Inventory</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#FFFDF5}
-        .login-container{display:flex;justify-content:center;align-items:center;min-height:100vh;background:linear-gradient(135deg,#2C5F2D 0%,#1F4A1F 100%)}
-        .login-card{background:white;border-radius:16px;padding:40px;width:350px;box-shadow:0 10px 25px rgba(0,0,0,0.2);text-align:center}
+        .login-container{
+            display:flex;justify-content:center;align-items:center;min-height:100vh;
+            background:linear-gradient(135deg,#2C5F2D 0%,#1F4A1F 100%)
+        }
+        .login-card{
+            background:white;border-radius:16px;padding:40px;width:350px;
+            box-shadow:0 10px 25px rgba(0,0,0,0.2);text-align:center
+        }
         .login-card h2{color:#2C5F2D;margin-bottom:25px}
-        .login-card input{width:100%;padding:10px;margin:10px 0;border:1px solid #ccc;border-radius:6px}
-        .login-card button{width:100%;background:#2C5F2D;color:white;border:none;padding:12px;border-radius:6px;cursor:pointer;font-size:16px}
+        .login-card input{
+            width:100%;padding:10px;margin:10px 0;border:1px solid #ccc;border-radius:6px
+        }
+        .login-card button{
+            width:100%;background:#2C5F2D;color:white;border:none;padding:12px;
+            border-radius:6px;cursor:pointer;font-size:16px
+        }
         .login-card button:hover{background:#1F4A1F}
         .error-msg{color:red;margin-top:10px}
         .app{display:flex;min-height:100vh}
-        .sidebar{width:280px;background:#2C5F2D;color:white;padding:20px;display:flex;flex-direction:column;gap:8px;box-shadow:2px 0 10px rgba(0,0,0,0.1)}
+        .sidebar{
+            width:280px;background:#2C5F2D;color:white;padding:20px;
+            display:flex;flex-direction:column;gap:8px;box-shadow:2px 0 10px rgba(0,0,0,0.1)
+        }
         .sidebar h2{margin-bottom:20px;border-bottom:2px solid white;padding-bottom:10px;font-size:1.5rem}
-        .sidebar button{background:#1F4A1F;color:white;border:none;padding:12px 15px;text-align:left;font-size:15px;border-radius:8px;cursor:pointer;transition:all 0.2s;font-weight:500}
+        .sidebar button{
+            background:#1F4A1F;color:white;border:none;padding:12px 15px;
+            text-align:left;font-size:15px;border-radius:8px;cursor:pointer;
+            transition:all 0.2s;font-weight:500
+        }
         .sidebar button:hover,.sidebar button.active{background:#0f3a0f;transform:translateX(5px)}
         .main{flex:1;padding:25px;background:#FFFDF5;overflow-y:auto}
-        .card{background:white;border-radius:16px;padding:25px;margin-bottom:25px;box-shadow:0 4px 12px rgba(0,0,0,0.05);border:1px solid #e0e0e0}
+        .card{
+            background:white;border-radius:16px;padding:25px;margin-bottom:25px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.05);border:1px solid #e0e0e0
+        }
         .card h2{color:#2C5F2D;margin-bottom:20px;border-left:5px solid #2C5F2D;padding-left:15px}
         .card h3{color:#2C5F2D;margin-bottom:15px}
         .form-group{margin-bottom:18px}
         label{display:block;font-weight:600;margin-bottom:6px;color:#333}
-        input,select{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:14px;transition:0.2s}
-        input:focus,select:focus{border-color:#2C5F2D;outline:none;box-shadow:0 0 0 2px rgba(44,95,45,0.2)}
-        button{background:#2C5F2D;color:white;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-weight:600;margin-top:10px;margin-right:12px;transition:0.2s}
+        input,select{
+            width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:14px
+        }
+        button{
+            background:#2C5F2D;color:white;border:none;border-radius:8px;
+            padding:10px 20px;cursor:pointer;font-weight:600;margin-top:10px;margin-right:12px
+        }
         button:hover{background:#1F4A1F;transform:translateY(-1px)}
         .remove-row{background:#dc3545;color:white;border:none;border-radius:6px;padding:5px 10px;cursor:pointer}
         .remove-row:hover{background:#c82333;transform:none}
@@ -50,9 +75,9 @@
     <div id="loginScreen" class="login-container">
         <div class="login-card">
             <h2>🌾 AgriTrack</h2>
-            <h3>Admin Login</h3>
-            <input type="text" id="username" placeholder="Username" autocomplete="off">
-            <input type="password" id="password" placeholder="Password">
+            <h3>Secure Login</h3>
+            <input type="email" id="loginEmail" placeholder="Email" autocomplete="off">
+            <input type="password" id="loginPassword" placeholder="Password">
             <button id="loginBtn">Login</button>
             <div id="loginError" class="error-msg"></div>
         </div>
@@ -71,6 +96,7 @@
                 <button id="btnMinStock">📊 Min WH – Stock</button>
                 <button id="btnMinSend">🛒 Min → Northern Shops</button>
                 <button id="btnShop">🏪 Shop Module</button>
+                <button id="logoutBtn" style="margin-top:20px; background:#dc3545;">🚪 Logout</button>
             </div>
             <div class="main">
                 <div id="moduleContainer" class="card">
@@ -81,8 +107,6 @@
     </div>
 
     <script>
-        const VALID_USERNAME = "rose harris";
-        const VALID_PASSWORD = "rose4321";
         const SUPABASE_URL = "https://njzjazzpmeaoufrqqldm.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qemphenpwbWVhb3VmcnFxbGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3ODQ0MjQsImV4cCI6MjA5MzM2MDQyNH0.YW06qCB-mgeheuVbdH9_2U8qDoytqb7v0NFZg1FhKKI";
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -97,6 +121,44 @@
             moduleContainer.appendChild(div);
             setTimeout(() => div.remove(), 5000);
         }
+
+        // ========== AUTHENTICATION ==========
+        async function checkSession() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appScreen').style.display = 'block';
+                initializeApp();
+            } else {
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('appScreen').style.display = 'none';
+            }
+        }
+
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            if (!email || !password) {
+                errorDiv.textContent = 'Email and password required.';
+                return;
+            }
+            const { error } = await sb.auth.signInWithPassword({ email, password });
+            if (error) {
+                errorDiv.textContent = error.message;
+            } else {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appScreen').style.display = 'block';
+                initializeApp();
+            }
+        });
+
+        document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+            await sb.auth.signOut();
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('appScreen').style.display = 'none';
+            moduleContainer.innerHTML = '<div class="loading">Please log in again.</div>';
+        });
 
         // ========== MAIN WAREHOUSE – BATCH RECEIVE ==========
         async function renderMainReceive() {
@@ -186,7 +248,7 @@
             for (let i = 0; i < 3; i++) addRow();
         }
 
-        // ========== MAIN WAREHOUSE STOCK (fixed alignment) ==========
+        // ========== MAIN WAREHOUSE STOCK ==========
         async function renderMainStock() {
             moduleContainer.innerHTML = '<div class="loading">Loading stock...</div>';
             try {
@@ -200,10 +262,9 @@
                 }
                 let html = '<h2>📊 Main Warehouse Stock</h2>';
                 html += '<div style="overflow-x:auto;">';
-                html += '<table>';
-                html += '<thead>';
-                html += '<tr><th>Product</th><th>Unit</th><th>Packing Size</th><th>Quantity</th><th>Selling Price (MWK)</th><th>Total Value (MWK)</th></tr>';
-                html += '</thead><tbody>';
+                html += '<table style="width:100%; border-collapse:collapse;">';
+                html += '<thead><tr><th>Product</th><th>Unit</th><th>Packing Size</th><th>Quantity</th><th>Selling Price (MWK)</th><th>Total Value (MWK)</th></tr></thead>';
+                html += '<tbody>';
                 let grand = 0;
                 for (const row of data) {
                     const p = row.products;
@@ -218,7 +279,7 @@
                         <td>${qty}</td>
                         <td>${price.toFixed(2)}</td>
                         <td>${total.toFixed(2)}</td>
-                    </tr>`;
+                    </table>`;
                 }
                 html += `<tr style="background:#e9f5e9;">
                     <td colspan="5"><strong>GRAND TOTAL</strong></td>
@@ -281,10 +342,21 @@
                 let success = 0, errors = [];
                 for (const row of valid) {
                     try {
-                        const { data: inv } = await sb.from('inventory').select('id, quantity').eq('location_id', 1).eq('product_id', row.productId).maybeSingle();
-                        if (!inv || inv.quantity < row.qty) throw new Error(`Insufficient stock`);
-                        await sb.from('inventory').update({ quantity: inv.quantity - row.qty }).eq('id', inv.id);
-                        await sb.from('transfers').insert({ from_location_id: 1, to_location_id: 2, product_id: row.productId, quantity: row.qty, status: 'pending', initiated_at: new Date().toISOString() });
+                        const { data: inv } = await sb.from('inventory')
+                            .select('id, quantity')
+                            .eq('location_id', 1)
+                            .eq('product_id', row.productId)
+                            .maybeSingle();
+                        if (!inv || inv.quantity < row.qty) throw new Error(`Insufficient stock (available: ${inv?.quantity || 0})`);
+                        await sb.from('inventory').update({ quantity: inv.quantity - row.qty, last_updated: new Date().toISOString() }).eq('id', inv.id);
+                        await sb.from('transfers').insert({
+                            from_location_id: 1,
+                            to_location_id: 2,
+                            product_id: row.productId,
+                            quantity: row.qty,
+                            status: 'pending',
+                            initiated_at: new Date().toISOString()
+                        });
                         success++;
                     } catch (err) { errors.push(err.message); }
                 }
@@ -296,7 +368,7 @@
             }
             moduleContainer.innerHTML = `
                 <h2>🚚 Transfer Main → Min Warehouse</h2>
-                <div style="overflow-x:auto;"><table><thead><tr><th>Product (only in stock)</th><th>Quantity</th><th></th></tr></thead><tbody id="transferTableBody"></tbody></table></div>
+                <div style="overflow-x:auto;"></table><thead><tr><th>Product (only in stock)</th><th>Quantity</th><th></th></tr></thead><tbody id="transferTableBody"></tbody></table></div>
                 <button id="addTransferRowBtn">+ Add Row</button>
                 <button id="transferSaveBtn">💾 Transfer All</button>
             `;
@@ -370,10 +442,21 @@
                 let success = 0, errors = [];
                 for (const row of valid) {
                     try {
-                        const { data: inv } = await sb.from('inventory').select('id, quantity').eq('location_id', 1).eq('product_id', row.productId).maybeSingle();
+                        const { data: inv } = await sb.from('inventory')
+                            .select('id, quantity')
+                            .eq('location_id', 1)
+                            .eq('product_id', row.productId)
+                            .maybeSingle();
                         if (!inv || inv.quantity < row.qty) throw new Error(`Insufficient stock`);
-                        await sb.from('inventory').update({ quantity: inv.quantity - row.qty }).eq('id', inv.id);
-                        await sb.from('transfers').insert({ from_location_id: 1, to_location_id: row.shopId, product_id: row.productId, quantity: row.qty, status: 'pending', initiated_at: new Date().toISOString() });
+                        await sb.from('inventory').update({ quantity: inv.quantity - row.qty, last_updated: new Date().toISOString() }).eq('id', inv.id);
+                        await sb.from('transfers').insert({
+                            from_location_id: 1,
+                            to_location_id: row.shopId,
+                            product_id: row.productId,
+                            quantity: row.qty,
+                            status: 'pending',
+                            initiated_at: new Date().toISOString()
+                        });
                         success++;
                     } catch (err) { errors.push(err.message); }
                 }
@@ -394,9 +477,12 @@
             addRow(); addRow();
         }
 
-        // ========== MIN WAREHOUSE – RECEIVE ==========
+        // ========== MIN WAREHOUSE – RECEIVE PENDING TRANSFERS ==========
         async function renderMinReceive() {
-            const { data: pending, error } = await sb.from('transfers').select('*, products(name, pack_size, unit)').eq('to_location_id', 2).eq('status', 'pending');
+            const { data: pending, error } = await sb.from('transfers')
+                .select('*, products(name, pack_size, unit)')
+                .eq('to_location_id', 2)
+                .eq('status', 'pending');
             if (error) {
                 moduleContainer.innerHTML = `<div class="error">${error.message}</div>`;
                 return;
@@ -405,8 +491,8 @@
                 moduleContainer.innerHTML = '<p style="padding:20px; text-align:center;">📭 No pending transfers from Main Warehouse.</p>';
                 return;
             }
-            let html = '<h2>✅ Receive Transfers from Main Warehouse</h2>';
-            html += '<div style="overflow-x:auto;"><table><thead><tr><th>Product</th><th>Quantity</th><th>Action</th></tr></thead><tbody>';
+            let html = '<h2>✅ Receive Transfers from Main Warehouse</h2><div style="overflow-x:auto;">';
+            html += '<table style="width:100%; border-collapse:collapse;"><thead><tr><th>Product</th><th>Quantity</th><th>Action</th></tr></thead><tbody>';
             for (const t of pending) {
                 html += `<tr>
                     <td>${t.products.name} - ${t.products.pack_size} (${t.products.unit})</td>
@@ -421,9 +507,16 @@
                     const transferId = parseInt(btn.dataset.id);
                     const { data: t } = await sb.from('transfers').select('*').eq('id', transferId).single();
                     if (!t) return;
-                    const { data: inv } = await sb.from('inventory').select('id, quantity').eq('location_id', 2).eq('product_id', t.product_id).maybeSingle();
-                    if (inv) await sb.from('inventory').update({ quantity: inv.quantity + t.quantity }).eq('id', inv.id);
-                    else await sb.from('inventory').insert({ location_id: 2, product_id: t.product_id, quantity: t.quantity });
+                    const { data: inv } = await sb.from('inventory')
+                        .select('id, quantity')
+                        .eq('location_id', 2)
+                        .eq('product_id', t.product_id)
+                        .maybeSingle();
+                    if (inv) {
+                        await sb.from('inventory').update({ quantity: inv.quantity + t.quantity, last_updated: new Date().toISOString() }).eq('id', inv.id);
+                    } else {
+                        await sb.from('inventory').insert({ location_id: 2, product_id: t.product_id, quantity: t.quantity, last_updated: new Date().toISOString() });
+                    }
                     await sb.from('transfers').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', transferId);
                     showMessage(`✅ Received ${t.quantity} units. Min Warehouse stock updated.`);
                     renderMinReceive();
@@ -431,7 +524,7 @@
             });
         }
 
-        // ========== MIN WAREHOUSE STOCK (fixed alignment) ==========
+        // ========== MIN WAREHOUSE STOCK ==========
         async function renderMinStock() {
             moduleContainer.innerHTML = '<div class="loading">Loading Min Warehouse stock...</div>';
             try {
@@ -445,8 +538,9 @@
                 }
                 let html = '<h2>📊 Min Warehouse Stock</h2>';
                 html += '<div style="overflow-x:auto;">';
-                html += '<table>';
-                html += '<thead><tr><th>Product</th><th>Unit</th><th>Packing Size</th><th>Quantity</th><th>Selling Price (MWK)</th><th>Total Value (MWK)</th></tr></thead><tbody>';
+                html += '<table style="width:100%; border-collapse:collapse;">';
+                html += '<thead><tr><th>Product</th><th>Unit</th><th>Packing Size</th><th>Quantity</th><th>Selling Price (MWK)</th><th>Total Value (MWK)</th></tr></thead>';
+                html += '<tbody>';
                 let grand = 0;
                 for (const row of data) {
                     const p = row.products;
@@ -455,7 +549,7 @@
                     const total = qty * price;
                     grand += total;
                     html += `<tr>
-                        <td>${p.name}</td>
+                        <tr>${p.name}</td>
                         <td>${p.unit}</td>
                         <td>${p.pack_size}</td>
                         <td>${qty}</td>
@@ -463,7 +557,10 @@
                         <td>${total.toFixed(2)}</td>
                     </tr>`;
                 }
-                html += `<tr style="background:#e9f5e9;"><td colspan="5"><strong>GRAND TOTAL</strong></td><td><strong>${grand.toFixed(2)} MWK</strong></td></tr>`;
+                html += `<tr style="background:#e9f5e9;">
+                    <td colspan="5"><strong>GRAND TOTAL</strong></td>
+                    <td><strong>${grand.toFixed(2)} MWK</strong></td>
+                </tr>`;
                 html += '</tbody></table></div>';
                 moduleContainer.innerHTML = html;
             } catch (err) {
@@ -471,21 +568,49 @@
             }
         }
 
-        // ========== MIN WAREHOUSE → NORTHERN SHOPS ==========
+        // ========== MIN WAREHOUSE → NORTHERN SHOPS (FIXED – WORKING) ==========
         async function renderMinSend() {
-            const { data: products } = await sb.from('products').select('id, name, pack_size, unit');
-            const { data: stock } = await sb.from('inventory').select('product_id, quantity').eq('location_id', 2);
-            const stockMap = new Map(); stock?.forEach(s => { if(s.quantity>0) stockMap.set(s.product_id, s.quantity); });
-            const availableProducts = products.filter(p => stockMap.has(p.id));
-            if (!availableProducts.length) {
-                moduleContainer.innerHTML = '<p>No products with stock in Min Warehouse to transfer.</p>';
+            // Fetch products
+            const { data: products, error: prodErr } = await sb.from('products').select('id, name, pack_size, unit');
+            if (prodErr || !products || products.length === 0) {
+                moduleContainer.innerHTML = '<div class="error">No products found.</div>';
                 return;
             }
-            const allowedShops = [
-                { id: 5, name: 'Mzuzu Shop 1' }, { id: 6, name: 'Mzuzu Shop 2' },
-                { id: 7, name: 'Ekwendeni Shop' }, { id: 8, name: 'Nkhata Bay Shop' },
-                { id: 9, name: 'Jenda Shop' }, { id: 10, name: 'Mpamba Shop' }
+            // Get Min Warehouse stock (location_id = 2)
+            const { data: stock, error: stockErr } = await sb.from('inventory').select('product_id, quantity').eq('location_id', 2);
+            if (stockErr) {
+                moduleContainer.innerHTML = `<div class="error">Error loading stock: ${stockErr.message}</div>`;
+                return;
+            }
+            const stockMap = new Map();
+            stock?.forEach(s => { if (s.quantity > 0) stockMap.set(s.product_id, s.quantity); });
+            const availableProducts = products.filter(p => stockMap.has(p.id));
+            if (availableProducts.length === 0) {
+                moduleContainer.innerHTML = '<p class="error">No products with stock in Min Warehouse to transfer.</p><p>Please receive stock in Min Warehouse first (via "Min WH – Receive").</p>';
+                return;
+            }
+            // Define northern shops with their IDs (must exist in locations table)
+            const northernShops = [
+                { id: 5, name: 'Mzuzu Shop 1' },
+                { id: 6, name: 'Mzuzu Shop 2' },
+                { id: 7, name: 'Ekwendeni Shop' },
+                { id: 8, name: 'Nkhata Bay Shop' },
+                { id: 9, name: 'Jenda Shop' },
+                { id: 10, name: 'Mpamba Shop' }
             ];
+            // Verify shops exist in database
+            const { data: existingShops, error: shopErr } = await sb.from('locations').select('id').in('id', northernShops.map(s => s.id));
+            if (shopErr) {
+                moduleContainer.innerHTML = `<div class="error">Error verifying shops: ${shopErr.message}</div>`;
+                return;
+            }
+            const existingIds = new Set(existingShops?.map(s => s.id) || []);
+            const validShops = northernShops.filter(s => existingIds.has(s.id));
+            if (validShops.length === 0) {
+                moduleContainer.innerHTML = '<div class="error">No northern shops configured. Please run SQL to insert shops (IDs 5-10).</div>';
+                return;
+            }
+            // Dynamic rows
             let rows = [];
             function renderTable() {
                 const tbody = document.getElementById('sendTableBody');
@@ -493,6 +618,7 @@
                 tbody.innerHTML = '';
                 rows.forEach((row, idx) => {
                     const tr = tbody.insertRow();
+                    // Product dropdown
                     const tdProd = tr.insertCell();
                     const selectProd = document.createElement('select');
                     selectProd.innerHTML = '<option value="">-- Product --</option>';
@@ -505,10 +631,11 @@
                     });
                     selectProd.addEventListener('change', (e) => { row.productId = e.target.value; });
                     tdProd.appendChild(selectProd);
+                    // Shop dropdown
                     const tdShop = tr.insertCell();
                     const selectShop = document.createElement('select');
                     selectShop.innerHTML = '<option value="">-- Shop --</option>';
-                    allowedShops.forEach(s => {
+                    validShops.forEach(s => {
                         const opt = document.createElement('option');
                         opt.value = s.id;
                         opt.textContent = s.name;
@@ -517,12 +644,20 @@
                     });
                     selectShop.addEventListener('change', (e) => { row.shopId = parseInt(e.target.value); });
                     tdShop.appendChild(selectShop);
+                    // Quantity
                     const tdQty = tr.insertCell();
-                    const qtyInp = document.createElement('input'); qtyInp.type = 'number'; qtyInp.step = '0.5'; qtyInp.value = row.qty; qtyInp.style.width = '100px';
+                    const qtyInp = document.createElement('input');
+                    qtyInp.type = 'number';
+                    qtyInp.step = '0.5';
+                    qtyInp.value = row.qty;
+                    qtyInp.style.width = '100px';
                     qtyInp.addEventListener('input', () => { row.qty = parseFloat(qtyInp.value) || 0; });
                     tdQty.appendChild(qtyInp);
+                    // Remove button
                     const tdRemove = tr.insertCell();
-                    const rmBtn = document.createElement('button'); rmBtn.textContent = '✖'; rmBtn.className = 'remove-row';
+                    const rmBtn = document.createElement('button');
+                    rmBtn.textContent = '✖';
+                    rmBtn.className = 'remove-row';
                     rmBtn.onclick = () => { rows.splice(idx, 1); renderTable(); };
                     tdRemove.appendChild(rmBtn);
                 });
@@ -530,23 +665,51 @@
             function addRow() { rows.push({ productId: null, shopId: null, qty: 0 }); renderTable(); }
             async function saveAll() {
                 const valid = rows.filter(r => r.productId && r.shopId && r.qty > 0);
-                if (!valid.length) { showMessage('No valid rows.', true); return; }
+                if (valid.length === 0) { showMessage('No valid rows.', true); return; }
                 if (!confirm(`Send ${valid.length} product(s) to northern shops?`)) return;
                 const btn = document.getElementById('sendSaveBtn');
-                btn.disabled = true; btn.textContent = '⏳ Sending...';
+                btn.disabled = true;
+                btn.textContent = '⏳ Sending...';
                 let success = 0, errors = [];
                 for (const row of valid) {
                     try {
-                        const { data: invFrom } = await sb.from('inventory').select('id, quantity').eq('location_id', 2).eq('product_id', row.productId).maybeSingle();
-                        if (!invFrom || invFrom.quantity < row.qty) throw new Error(`Insufficient stock in Min WH`);
-                        await sb.from('inventory').update({ quantity: invFrom.quantity - row.qty }).eq('id', invFrom.id);
-                        const { data: invTo } = await sb.from('inventory').select('id, quantity').eq('location_id', row.shopId).eq('product_id', row.productId).maybeSingle();
-                        if (invTo) await sb.from('inventory').update({ quantity: invTo.quantity + row.qty }).eq('id', invTo.id);
-                        else await sb.from('inventory').insert({ location_id: row.shopId, product_id: row.productId, quantity: row.qty });
+                        // Check Min Warehouse stock again (to avoid race conditions)
+                        const { data: invFrom, error: invErr } = await sb.from('inventory')
+                            .select('id, quantity')
+                            .eq('location_id', 2)
+                            .eq('product_id', row.productId)
+                            .maybeSingle();
+                        if (invErr) throw new Error(`Stock check error: ${invErr.message}`);
+                        if (!invFrom || invFrom.quantity < row.qty) throw new Error(`Insufficient stock in Min Warehouse for this product. Available: ${invFrom?.quantity || 0}`);
+                        // Reduce Min Warehouse stock
+                        const { error: updateErr } = await sb.from('inventory')
+                            .update({ quantity: invFrom.quantity - row.qty, last_updated: new Date().toISOString() })
+                            .eq('id', invFrom.id);
+                        if (updateErr) throw new Error(`Update error: ${updateErr.message}`);
+                        // Add to shop inventory
+                        const { data: invTo, error: invToErr } = await sb.from('inventory')
+                            .select('id, quantity')
+                            .eq('location_id', row.shopId)
+                            .eq('product_id', row.productId)
+                            .maybeSingle();
+                        if (invToErr) throw new Error(`Shop stock check error: ${invToErr.message}`);
+                        if (invTo) {
+                            const { error: updateToErr } = await sb.from('inventory')
+                                .update({ quantity: invTo.quantity + row.qty, last_updated: new Date().toISOString() })
+                                .eq('id', invTo.id);
+                            if (updateToErr) throw new Error(`Update shop error: ${updateToErr.message}`);
+                        } else {
+                            const { error: insertToErr } = await sb.from('inventory')
+                                .insert({ location_id: row.shopId, product_id: row.productId, quantity: row.qty, last_updated: new Date().toISOString() });
+                            if (insertToErr) throw new Error(`Insert shop error: ${insertToErr.message}`);
+                        }
                         success++;
-                    } catch (err) { errors.push(err.message); }
+                    } catch (err) {
+                        errors.push(err.message);
+                    }
                 }
-                btn.disabled = false; btn.textContent = '💾 Send All';
+                btn.disabled = false;
+                btn.textContent = '💾 Send All';
                 if (success) showMessage(`✅ Sent ${success} item(s) to northern shops. Min stock reduced.`);
                 if (errors.length) showMessage(`Errors: ${errors.join('; ')}`, true);
                 rows = [];
@@ -640,9 +803,13 @@
                     document.getElementById('salePrice').value = price;
                 });
                 const stockDiv = document.getElementById('shopStockTable');
-                if (currentStock.length === 0) stockDiv.innerHTML = '<p>No stock in this shop.</p>';
-                else {
-                    let html = '<div style="overflow-x:auto;"><table><thead><tr><th>Product</th><th>Unit</th><th>Packing Size</th><th>Quantity</th><th>Selling Price (MWK)</th><th>Total Value (MWK)</th></tr></thead><tbody>';
+                if (currentStock.length === 0) {
+                    stockDiv.innerHTML = '<p>No stock in this shop.</p>';
+                } else {
+                    let html = '<div style="overflow-x:auto;">';
+                    html += '<table style="width:100%; border-collapse:collapse;">';
+                    html += '<thead><tr><th>Product</th><th>Unit</th><th>Packing Size</th><th>Quantity</th><th>Selling Price (MWK)</th><th>Total Value (MWK)</th></tr></thead>';
+                    html += '<tbody>';
                     let grand = 0;
                     for (const item of currentStock) {
                         const p = item.products;
@@ -659,7 +826,10 @@
                             <td>${total.toFixed(2)}</td>
                         </tr>`;
                     }
-                    html += `<tr style="background:#e9f5e9;"><td colspan="5"><strong>GRAND TOTAL</strong></td><td><strong>${grand.toFixed(2)} MWK</strong></td></tr>`;
+                    html += `<tr style="background:#e9f5e9;">
+                        <td colspan="5"><strong>GRAND TOTAL</strong></td>
+                        <td><strong>${grand.toFixed(2)} MWK</strong></td>
+                    </tr>`;
                     html += '</tbody></table></div>';
                     stockDiv.innerHTML = html;
                 }
@@ -681,7 +851,7 @@
                         });
                         const { data: inv } = await sb.from('inventory').select('id, quantity').eq('location_id', selectedShopId).eq('product_id', productId).maybeSingle();
                         if (!inv || inv.quantity < qty) throw new Error('Insufficient stock');
-                        await sb.from('inventory').update({ quantity: inv.quantity - qty }).eq('id', inv.id);
+                        await sb.from('inventory').update({ quantity: inv.quantity - qty, last_updated: new Date().toISOString() }).eq('id', inv.id);
                         showMessage(`Sale recorded: ${qty} units sold. Stock updated.`);
                         document.getElementById('saleQty').value = '';
                         renderShopUI();
@@ -709,7 +879,8 @@
                     const reportDiv = document.getElementById('reportResult');
                     if (!sales || sales.length === 0) { reportDiv.innerHTML = '<p>No sales in this period.</p>'; return; }
                     let totalRev = 0;
-                    let table = '<div style="overflow-x:auto;"><table><thead><tr><th>Date</th><th>Product</th><th>Quantity</th><th>Unit Price (MWK)</th><th>Total (MWK)</th><th>Payment</th></tr></thead><tbody>';
+                    let table = '<div style="overflow-x:auto;">';
+                    table += '<table style="width:100%; border-collapse:collapse;"><thead><tr><th>Date</th><th>Product</th><th>Quantity</th><th>Unit Price (MWK)</th><th>Total (MWK)</th><th>Payment</th></tr></thead><tbody>';
                     for (const sale of sales) {
                         totalRev += sale.revenue;
                         table += `<tr>
@@ -721,20 +892,27 @@
                             <td>${sale.payment_method}</td>
                         </tr>`;
                     }
-                    table += `<tr style="background:#e9f5e9;"><td colspan="4"><strong>TOTAL REVENUE</strong></td><td colspan="2"><strong>${totalRev.toFixed(2)} MWK</strong></td></tr>`;
+                    table += `<tr style="background:#e9f5e9;">
+                        <td colspan="4"><strong>TOTAL REVENUE</strong></td>
+                        <td> colspan="2"><strong>${totalRev.toFixed(2)} MWK</strong></td>
+                    </tr>`;
                     table += '</tbody></table></div>';
                     reportDiv.innerHTML = table;
                 };
             };
             async function loadShopPendingTransfers() {
                 const pendingDiv = document.getElementById('shopPendingTransfers');
-                const { data: pending, error } = await sb.from('transfers').select('*, products(name, pack_size, unit)').eq('to_location_id', selectedShopId).eq('status', 'pending');
+                const { data: pending, error } = await sb.from('transfers')
+                    .select('*, products(name, pack_size, unit)')
+                    .eq('to_location_id', selectedShopId)
+                    .eq('status', 'pending');
                 if (error) { pendingDiv.innerHTML = `<div class="error">${error.message}</div>`; return; }
                 if (!pending || pending.length === 0) {
                     pendingDiv.innerHTML = '<p>📭 No pending transfers for this shop.</p>';
                     return;
                 }
-                let html = '<div style="overflow-x:auto;"><table><thead><tr><th>Product</th><th>Quantity</th><th>Action</th></tr></thead><tbody>';
+                let html = '<div style="overflow-x:auto;">';
+                html += '<table style="width:100%; border-collapse:collapse;"><thead><tr><th>Product</th><th>Quantity</th><th>Action</th></tr></thead><tbody>';
                 for (const t of pending) {
                     html += `<tr>
                         <td>${t.products.name} - ${t.products.pack_size} (${t.products.unit})</td>
@@ -749,11 +927,15 @@
                         const transferId = parseInt(btn.dataset.id);
                         const { data: t } = await sb.from('transfers').select('*').eq('id', transferId).single();
                         if (!t) return;
-                        const { data: inv } = await sb.from('inventory').select('id, quantity').eq('location_id', selectedShopId).eq('product_id', t.product_id).maybeSingle();
+                        const { data: inv } = await sb.from('inventory')
+                            .select('id, quantity')
+                            .eq('location_id', selectedShopId)
+                            .eq('product_id', t.product_id)
+                            .maybeSingle();
                         if (inv) {
-                            await sb.from('inventory').update({ quantity: inv.quantity + t.quantity }).eq('id', inv.id);
+                            await sb.from('inventory').update({ quantity: inv.quantity + t.quantity, last_updated: new Date().toISOString() }).eq('id', inv.id);
                         } else {
-                            await sb.from('inventory').insert({ location_id: selectedShopId, product_id: t.product_id, quantity: t.quantity });
+                            await sb.from('inventory').insert({ location_id: selectedShopId, product_id: t.product_id, quantity: t.quantity, last_updated: new Date().toISOString() });
                         }
                         await sb.from('transfers').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', transferId);
                         showMessage(`✅ Received ${t.quantity} units. Shop stock updated.`);
@@ -775,6 +957,7 @@
             btns.forEach(id => { const btn = document.getElementById(id); if (btn) btn.classList.remove('active'); });
             document.getElementById(activeId).classList.add('active');
         }
+
         function loadModule(module) {
             if (module === 'mainReceive') renderMainReceive();
             else if (module === 'mainStock') renderMainStock();
@@ -785,6 +968,7 @@
             else if (module === 'minSend') renderMinSend();
             else if (module === 'shop') renderShop();
         }
+
         function initializeApp() {
             document.getElementById('btnMainReceive').onclick = () => { setActive('btnMainReceive'); loadModule('mainReceive'); };
             document.getElementById('btnMainStock').onclick = () => { setActive('btnMainStock'); loadModule('mainStock'); };
@@ -797,24 +981,7 @@
             loadModule('mainReceive');
         }
 
-        // ==== LOGIN ====
-        document.getElementById('loginBtn').addEventListener('click', () => {
-            const user = document.getElementById('username').value.trim().toLowerCase();
-            const pwd = document.getElementById('password').value;
-            if (user === VALID_USERNAME.toLowerCase() && pwd === VALID_PASSWORD) {
-                sessionStorage.setItem('loggedIn', 'true');
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('appScreen').style.display = 'block';
-                initializeApp();
-            } else {
-                document.getElementById('loginError').textContent = 'Invalid username or password.';
-            }
-        });
-        if (sessionStorage.getItem('loggedIn') === 'true') {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appScreen').style.display = 'block';
-            initializeApp();
-        }
+        checkSession();
     </script>
 </body>
 </html>
