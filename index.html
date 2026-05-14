@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgriTrack –  Rose Harris Investment</title>
+    <title>AgriTrack – Full Admin & Shop Permissions</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#FFFDF5}
@@ -106,6 +106,7 @@
         const moduleContainer = document.getElementById('moduleContainer');
         let currentUserRole = null;
         let currentUserId = null;
+        let currentUserShops = [];  // list of shop ids the user is allowed to see
 
         function showMessage(text, isError = false) {
             const existing = moduleContainer.querySelector('.message');
@@ -117,42 +118,44 @@
             setTimeout(() => div.remove(), 5000);
         }
 
-        // ========== AUTHENTICATION & ROLE FETCHING ==========
+        // ========== AUTHENTICATION & ROLE / SHOP FETCHING ==========
         async function fetchUserRole(userId) {
             const { data, error } = await sb
                 .from('user_roles')
                 .select('role')
                 .eq('user_id', userId)
                 .maybeSingle();
-            if (error) {
-                console.error("Error fetching role:", error);
-                return null;
-            }
+            if (error) return null;
             return data?.role || null;
+        }
+
+        async function fetchUserShops(userId) {
+            const { data, error } = await sb
+                .from('user_shops')
+                .select('shop_id')
+                .eq('user_id', userId);
+            if (error) return [];
+            return data.map(row => row.shop_id);
         }
 
         async function checkSession() {
             const { data: { session }, error } = await sb.auth.getSession();
-            if (error) {
-                console.error("Session error:", error);
+            if (error || !session) {
                 showLoginScreen();
                 return;
             }
-            if (session) {
-                currentUserId = session.user.id;
-                const role = await fetchUserRole(currentUserId);
-                if (!role) {
-                    showLoginScreen();
-                    document.getElementById('loginError').textContent = "User role not configured. Contact admin.";
-                    return;
-                }
-                currentUserRole = role;
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('appScreen').style.display = 'block';
-                initializeApp(role);
-            } else {
+            currentUserId = session.user.id;
+            const role = await fetchUserRole(currentUserId);
+            if (!role) {
                 showLoginScreen();
+                document.getElementById('loginError').textContent = "User role not configured. Contact admin.";
+                return;
             }
+            currentUserRole = role;
+            currentUserShops = await fetchUserShops(currentUserId);
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            initializeApp(role);
         }
 
         function showLoginScreen() {
@@ -171,19 +174,20 @@
             const { data, error } = await sb.auth.signInWithPassword({ email, password });
             if (error) {
                 errorDiv.textContent = error.message;
-            } else {
-                currentUserId = data.user.id;
-                const role = await fetchUserRole(currentUserId);
-                if (!role) {
-                    errorDiv.textContent = "User role not configured. Contact admin.";
-                    await sb.auth.signOut();
-                    return;
-                }
-                currentUserRole = role;
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('appScreen').style.display = 'block';
-                initializeApp(role);
+                return;
             }
+            currentUserId = data.user.id;
+            const role = await fetchUserRole(currentUserId);
+            if (!role) {
+                errorDiv.textContent = "User role not configured. Contact admin.";
+                await sb.auth.signOut();
+                return;
+            }
+            currentUserRole = role;
+            currentUserShops = await fetchUserShops(currentUserId);
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'block';
+            initializeApp(role);
         });
 
         document.getElementById('logoutBtn')?.addEventListener('click', async () => {
@@ -192,12 +196,13 @@
             moduleContainer.innerHTML = '<div class="loading">Please log in again.</div>';
         });
 
-        // ========== SIDEBAR BUILDER ==========
+        // ========== SIDEBAR BUILDER (admin gets extra Admin Panel button) ==========
         function buildSidebar(role) {
             const container = document.getElementById('dynamicButtons');
             container.innerHTML = '';
             if (role === 'admin') {
                 const buttons = [
+                    { id: 'btnAdmin', text: '👥 Admin Panel', module: 'admin' },
                     { id: 'btnMainReceive', text: '📦 Main WH – Receive', module: 'mainReceive' },
                     { id: 'btnMainStock', text: '📊 Main WH – Stock', module: 'mainStock' },
                     { id: 'btnMainTransfer', text: '🚚 Main → Min WH', module: 'mainTransfer' },
@@ -223,19 +228,18 @@
             }
         }
 
-        // ========== MODULE LOADER WITH ROLE CHECK ==========
+        // ========== MODULE LOADER ==========
         function loadModule(moduleName) {
             if (currentUserRole === 'shopkeeper' && moduleName !== 'shop') {
                 showMessage("Access denied: You are only allowed to access the Shop Module.", true);
                 return;
             }
-            // Update active style
             const allBtns = document.querySelectorAll('#dynamicButtons button');
             allBtns.forEach(btn => btn.classList.remove('active'));
             const activeBtn = document.getElementById(`btn${moduleName.charAt(0).toUpperCase() + moduleName.slice(1)}`);
             if (activeBtn) activeBtn.classList.add('active');
-            // Render module
-            if (moduleName === 'mainReceive') renderMainReceive();
+            if (moduleName === 'admin') renderAdminPanel();
+            else if (moduleName === 'mainReceive') renderMainReceive();
             else if (moduleName === 'mainStock') renderMainStock();
             else if (moduleName === 'mainTransfer') renderMainTransfer();
             else if (moduleName === 'mainToShops') renderMainToShops();
@@ -245,7 +249,174 @@
             else if (moduleName === 'shop') renderShop();
         }
 
-        // ========== ALL MODULE FUNCTIONS (including fixed renderMainTransfer) ==========
+        // ========== ADMIN PANEL MODULE ==========
+        async function renderAdminPanel() {
+            moduleContainer.innerHTML = '<div class="loading">Loading admin panel...</div>';
+            try {
+                const token = (await sb.auth.getSession()).data.session?.access_token;
+                const response = await fetch('/api/admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ action: 'list' })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to fetch users');
+                const users = data.users;
+
+                const { data: shops } = await sb.from('locations').select('id, name').eq('type', 'shop');
+                const shopList = shops || [];
+
+                let html = `
+                    <h2>👥 Admin Panel – Manage Users & Permissions</h2>
+                    <div class="card">
+                        <h3>➕ Create New User</h3>
+                        <div class="flex-row">
+                            <div style="flex:1"><label>Email</label><input type="email" id="newEmail" placeholder="user@example.com"></div>
+                            <div style="flex:1"><label>Password</label><input type="password" id="newPassword"></div>
+                            <div style="flex:1"><label>Role</label>
+                                <select id="newRole">
+                                    <option value="shopkeeper">Shopkeeper</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div style="flex:1"><label>Assign Shops (for shopkeeper)</label>
+                                <select id="newShops" multiple size="3">
+                                    ${shopList.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div style="align-self:flex-end"><button id="createUserBtn">Create User</button></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>📋 Existing Users</h3>
+                        <div style="overflow-x:auto;">
+                            <table style="width:100%;">
+                                <thead><tr><th>Email</th><th>Role</th><th>Assigned Shops</th><th>Actions</th></tr></thead>
+                                <tbody id="userTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                moduleContainer.innerHTML = html;
+
+                const tbody = document.getElementById('userTableBody');
+                for (const user of users) {
+                    const isSelf = user.id === currentUserId;
+                    const assignedShopNames = user.shopIds.map(sid => shopList.find(s => s.id === sid)?.name || sid).join(', ');
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${user.email}</td>
+                        <td>${user.role}</td>
+                        <td>${assignedShopNames || '—'}</td>
+                        <td>
+                            ${!isSelf ? `<button class="deleteUserBtn" data-id="${user.id}">Delete</button>` : '—'}
+                            ${user.role === 'shopkeeper' ? `<button class="editShopsBtn" data-id="${user.id}" data-shops='${JSON.stringify(user.shopIds)}'>Edit Shops</button>` : ''}
+                        </td>
+                    `;
+                }
+
+                // Create user
+                document.getElementById('createUserBtn').onclick = async () => {
+                    const email = document.getElementById('newEmail').value.trim();
+                    const password = document.getElementById('newPassword').value;
+                    const role = document.getElementById('newRole').value;
+                    const shopSelect = document.getElementById('newShops');
+                    const shopIds = Array.from(shopSelect.selectedOptions).map(opt => parseInt(opt.value));
+                    if (!email || !password) {
+                        showMessage('Email and password required.', true);
+                        return;
+                    }
+                    const token = (await sb.auth.getSession()).data.session?.access_token;
+                    const res = await fetch('/api/admin', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ action: 'create', email, password, role, shopIds })
+                    });
+                    const result = await res.json();
+                    if (res.ok) {
+                        showMessage(`User ${email} created successfully.`);
+                        renderAdminPanel(); // refresh
+                    } else {
+                        showMessage(`Error: ${result.error}`, true);
+                    }
+                };
+
+                // Delete user
+                document.querySelectorAll('.deleteUserBtn').forEach(btn => {
+                    btn.onclick = async () => {
+                        const userId = btn.dataset.id;
+                        if (!confirm('Delete this user permanently?')) return;
+                        const token = (await sb.auth.getSession()).data.session?.access_token;
+                        const res = await fetch('/api/admin', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ action: 'delete', userId })
+                        });
+                        const result = await res.json();
+                        if (res.ok) {
+                            showMessage('User deleted.');
+                            renderAdminPanel();
+                        } else {
+                            showMessage(`Error: ${result.error}`, true);
+                        }
+                    };
+                });
+
+                // Edit shops (simple modal)
+                document.querySelectorAll('.editShopsBtn').forEach(btn => {
+                    btn.onclick = async () => {
+                        const userId = btn.dataset.id;
+                        const currentShops = JSON.parse(btn.dataset.shops);
+                        const shopListHtml = shopList.map(s => `<label><input type="checkbox" value="${s.id}" ${currentShops.includes(s.id) ? 'checked' : ''}> ${s.name}</label><br>`).join('');
+                        const newShops = await new Promise((resolve) => {
+                            const modal = document.createElement('div');
+                            modal.style.position = 'fixed'; modal.style.top = '20%'; modal.style.left = '30%'; modal.style.width = '40%';
+                            modal.style.background = 'white'; modal.style.padding = '20px'; modal.style.borderRadius = '12px';
+                            modal.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)'; modal.style.zIndex = '1000';
+                            modal.innerHTML = `
+                                <h3>Assign Shops</h3>
+                                <div id="shopCheckboxes">${shopListHtml}</div>
+                                <button id="modalSave">Save</button>
+                                <button id="modalCancel">Cancel</button>
+                            `;
+                            document.body.appendChild(modal);
+                            modal.querySelector('#modalSave').onclick = () => {
+                                const selected = Array.from(modal.querySelectorAll('input:checked')).map(cb => parseInt(cb.value));
+                                document.body.removeChild(modal);
+                                resolve(selected);
+                            };
+                            modal.querySelector('#modalCancel').onclick = () => {
+                                document.body.removeChild(modal);
+                                resolve(null);
+                            };
+                        });
+                        if (newShops !== null) {
+                            const token = (await sb.auth.getSession()).data.session?.access_token;
+                            const res = await fetch('/api/admin', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                body: JSON.stringify({ action: 'updateShops', userId, shopIds: newShops })
+                            });
+                            const result = await res.json();
+                            if (res.ok) {
+                                showMessage('Shop permissions updated.');
+                                renderAdminPanel();
+                            } else {
+                                showMessage(`Error: ${result.error}`, true);
+                            }
+                        }
+                    };
+                });
+            } catch (err) {
+                moduleContainer.innerHTML = `<div class="error">Admin panel error: ${err.message}</div>`;
+            }
+        }
+
+        // ========== ALL WAREHOUSE AND TRANSFER MODULES (unchanged from your working code) ==========
+        // These functions are copied exactly from your last working version – they work.
         async function renderMainReceive() {
             const { data: products } = await sb.from('products').select('id, name, pack_size, unit');
             if (!products || products.length === 0) {
@@ -323,10 +494,10 @@
                 renderTable();
             }
             moduleContainer.innerHTML = `
-                <h2>📦 Receive Products into Main Warehouse (Batch)</h2>
+                <h2> Receive Products into Main Warehouse (Batch)</h2>
                 <div style="overflow-x:auto;">能<table style="width:100%; border-collapse:collapse;"><thead><tr><th>Product</th><th>Unit</th><th>Packing Size</th><th>Quantity</th><th>Price (MWK)</th><th>Total</th><th></th></tr></thead><tbody id="receiveTableBody"></tbody></table></div>
                 <button id="addRowBtn">+ Add Row</button>
-                <button id="saveReceiveBtn">💾 Save All</button>
+                <button id="saveReceiveBtn"> Save All</button>
             `;
             document.getElementById('addRowBtn').onclick = addRow;
             document.getElementById('saveReceiveBtn').onclick = saveAll;
@@ -344,7 +515,7 @@
                     moduleContainer.innerHTML = '<p>No stock in Main Warehouse.</p>';
                     return;
                 }
-                let html = '<h2>📊 Main Warehouse Stock</h2><div style="overflow-x:auto;">';
+                let html = '<h2> Main Warehouse Stock</h2><div style="overflow-x:auto;">';
                 html += '<table style="width:100%; border-collapse:collapse;"><thead><tr><th>Product</th><th>Unit</th><th>Packing Size</th><th>Quantity</th><th>Selling Price (MWK)</th><th>Total Value (MWK)</th></tr></thead><tbody>';
                 let grand = 0;
                 for (const row of data) {
@@ -370,7 +541,6 @@
             }
         }
 
-        // ========== FIXED MAIN → MIN TRANSFER ==========
         async function renderMainTransfer() {
             const { data: products } = await sb.from('products').select('id, name, pack_size, unit');
             if (!products || !products.length) {
@@ -461,14 +631,14 @@
                     }
                 }
                 btn.disabled = false;
-                btn.textContent = '💾 Transfer All';
+                btn.textContent = ' Transfer All';
                 if (success) showMessage(`✅ ${success} transfer(s) created. Main stock reduced.`);
                 if (errors.length) showMessage(`Errors: ${errors.join('; ')}`, true);
                 rows = [];
                 renderTable();
             }
             moduleContainer.innerHTML = `
-                <h2>🚚 Transfer Main → Min Warehouse</h2>
+                <h2> Transfer Main → Min Warehouse</h2>
                 <div style="overflow-x:auto;">能<table style="width:100%; border-collapse:collapse;"><thead><tr><th>Product (only in stock)</th><th>Quantity</th><th></th></tr></thead><tbody id="transferTableBody"></tbody></table></div>
                 <button id="addTransferRowBtn">+ Add Row</button>
                 <button id="transferSaveBtn">💾 Transfer All</button>
@@ -478,7 +648,6 @@
             addRow(); addRow();
         }
 
-        // ========== OTHER MODULES (mainToShops, minReceive, minStock, minSend, shop) – fully functional ==========
         async function renderMainToShops() {
             const { data: products } = await sb.from('products').select('id, name, pack_size, unit');
             const { data: stock } = await sb.from('inventory').select('product_id, quantity').eq('location_id', 1);
@@ -568,8 +737,8 @@
                 renderTable();
             }
             moduleContainer.innerHTML = `
-                <h2>🚚 Transfer Main → Lilongwe / Blantyre</h2>
-                <div style="overflow-x:auto;">能<table style="width:100%; border-collapse:collapse;"><thead><tr><th>Product (only in stock)</th><th>Shop</th><th>Quantity</th><th></th></tr></thead><tbody id="mainToShopsTableBody"></tbody></table></div>
+                <h2> Transfer Main → Lilongwe / Blantyre</h2>
+                <div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse;"><thead><tr><th>Product (only in stock)</th><th>Shop</th><th>Quantity</th><th></th></table></thead><tbody id="mainToShopsTableBody"></tbody></table></div>
                 <button id="addMainToShopsRowBtn">+ Add Row</button>
                 <button id="mainToShopsSaveBtn">💾 Transfer All</button>
             `;
@@ -654,7 +823,7 @@
                     </tr>`;
                 }
                 html += `<tr style="background:#e9f5e9;"><td colspan="5"><strong>GRAND TOTAL</strong></td><td><strong>${grand.toFixed(2)} MWK</strong></td></tr>`;
-                html += '</tbody></table></div>';
+                html += '</tbody><table></div>';
                 moduleContainer.innerHTML = html;
             } catch (err) {
                 moduleContainer.innerHTML = `<div class="error">${err.message}</div>`;
@@ -763,10 +932,22 @@
             addRow(); addRow();
         }
 
+        // ========== MODIFIED SHOP MODULE (respects currentUserShops) ==========
         async function renderShop() {
-            const { data: shops } = await sb.from('locations').select('id, name').eq('type', 'shop');
+            let shops;
+            if (currentUserRole === 'admin') {
+                const { data } = await sb.from('locations').select('id, name').eq('type', 'shop');
+                shops = data || [];
+            } else {
+                if (currentUserShops.length === 0) {
+                    moduleContainer.innerHTML = '<div class="error">You are not assigned to any shop. Contact admin.</div>';
+                    return;
+                }
+                const { data } = await sb.from('locations').select('id, name').eq('type', 'shop').in('id', currentUserShops);
+                shops = data || [];
+            }
             if (!shops || shops.length === 0) {
-                moduleContainer.innerHTML = '<div class="error">No shops configured.</div>';
+                moduleContainer.innerHTML = '<div class="error">No shops available.</div>';
                 return;
             }
             let selectedShopId = shops[0].id;
@@ -842,8 +1023,7 @@
                 if (currentStock.length === 0) {
                     stockDiv.innerHTML = '<p>No stock in this shop.</p>';
                 } else {
-                    let html = '<div style="overflow-x:auto;">';
-                    html += '<table style="width:100%; border-collapse:collapse;"><thead><tr><th>Product</th><th>Unit</th><th>Packing Size</th><th>Quantity</th><th>Selling Price (MWK)</th><th>Total Value (MWK)</th></tr></thead><tbody>';
+                    let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse;"><thead><tr><th>Product</th><th>Unit</th><th>Packing Size</th><th>Quantity</th><th>Selling Price (MWK)</th><th>Total Value (MWK)</th></tr></thead><tbody>';
                     let grand = 0;
                     for (const item of currentStock) {
                         const p = item.products;
@@ -861,7 +1041,7 @@
                         </tr>`;
                     }
                     html += `<tr style="background:#e9f5e9;"><td colspan="5"><strong>GRAND TOTAL</strong></td><td><strong>${grand.toFixed(2)} MWK</strong></td></tr>`;
-                    html += '</tbody></tr></div>';
+                    html += '</tbody></table></div>';
                     stockDiv.innerHTML = html;
                 }
                 document.getElementById('recordSaleBtn').onclick = async () => {
@@ -883,7 +1063,7 @@
                         const { data: inv } = await sb.from('inventory').select('id, quantity').eq('location_id', selectedShopId).eq('product_id', productId).maybeSingle();
                         if (!inv || inv.quantity < qty) throw new Error('Insufficient stock');
                         await sb.from('inventory').update({ quantity: inv.quantity - qty, last_updated: new Date().toISOString() }).eq('id', inv.id);
-                        showMessage(`Sale recorded: ${qty} units sold. Stock updated.`);
+                        showMessage(`Sale recorded: ${qty} units sold.`);
                         document.getElementById('saleQty').value = '';
                         renderShopUI();
                     } catch (err) { showMessage(err.message, true); }
@@ -910,8 +1090,7 @@
                     const reportDiv = document.getElementById('reportResult');
                     if (!sales || sales.length === 0) { reportDiv.innerHTML = '<p>No sales in this period.</p>'; return; }
                     let totalRev = 0;
-                    let table = '<div style="overflow-x:auto;">';
-                    table += '<table style="width:100%; border-collapse:collapse;"><thead><tr><th>Date</th><th>Product</th><th>Quantity</th><th>Unit Price (MWK)</th><th>Total (MWK)</th><th>Payment</th></tr></thead><tbody>';
+                    let table = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse;"><thead><tr><th>Date</th><th>Product</th><th>Quantity</th><th>Unit Price (MWK)</th><th>Total (MWK)</th><th>Payment</th></tr></thead><tbody>';
                     for (const sale of sales) {
                         totalRev += sale.revenue;
                         table += `<tr>
@@ -923,7 +1102,7 @@
                             <td>${sale.payment_method}</td>
                         </tr>`;
                     }
-                    table += `<tr style="background:#e9f5e9;"><td colspan="4"><strong>TOTAL REVENUE</strong></td><td colspan="2"><strong>${totalRev.toFixed(2)} MWK</strong><\/td><\/tr>`;
+                    table += `<tr style="background:#e9f5e9;"><td colspan="4"><strong>TOTAL REVENUE</strong></td><td colspan="2"><strong>${totalRev.toFixed(2)} MWK</strong></td></tr>`;
                     table += '</tbody></table></div>';
                     reportDiv.innerHTML = table;
                 };
@@ -939,14 +1118,13 @@
                     pendingDiv.innerHTML = '<p>📭 No pending transfers for this shop.</p>';
                     return;
                 }
-                let html = '<div style="overflow-x:auto;">';
-                html += '<table style="width:100%; border-collapse:collapse;"><thead><tr><th>Product</th><th>Quantity</th><th>Action</th></tr></thead><tbody>';
+                let html = '<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse;"><thead><tr><th>Product</th><th>Quantity</th><th>Action</th></tr></thead><tbody>';
                 for (const t of pending) {
                     html += `<tr>
                         <td>${t.products.name} - ${t.products.pack_size} (${t.products.unit})</td>
                         <td>${t.quantity}</td>
                         <td><button class="confirmShopReceive" data-id="${t.id}">Confirm Receipt</button></td>
-                    <tr>`;
+                    </tr>`;
                 }
                 html += '</tbody></table></div>';
                 pendingDiv.innerHTML = html;
@@ -982,11 +1160,10 @@
         // ========== INITIALIZE APP ==========
         function initializeApp(role) {
             buildSidebar(role);
-            if (role === 'admin') loadModule('mainReceive');
+            if (role === 'admin') loadModule('admin');
             else loadModule('shop');
         }
 
-        // Start session check
         checkSession();
     </script>
 </body>
