@@ -1,36 +1,35 @@
-// Supabase credentials
+// Supabase client (global)
 const SUPABASE_URL = "https://njzjazzpmeaoufrqqldm.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qemphenpwbWVhb3VmcnFxbGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3ODQ0MjQsImV4cCI6MjA5MzM2MDQyNH0.YW06qCB-mgeheuVbdH9_2U8qDoytqb7v0NFZg1FhKKI";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Create the supabase client (THIS IS THE CRITICAL LINE)
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Global state
+let currentUserRole = null;
+let currentUserId = null;
+let currentUserShops = [];
 
-// Helper functions
-async function getLocations() {
-    const { data, error } = await supabase.from('locations').select('*');
-    if (error) throw error;
-    return data;
+// Helper to show message in the module container
+function showMessage(text, isError = false) {
+    const container = document.getElementById('moduleContainer');
+    const existing = container.querySelector('.message');
+    if (existing) existing.remove();
+    const div = document.createElement('div');
+    div.className = `message ${isError ? 'error' : 'success'}`;
+    div.textContent = text;
+    container.appendChild(div);
+    setTimeout(() => div.remove(), 5000);
 }
 
-async function getProducts() {
-    const { data, error } = await supabase.from('products').select('*');
-    if (error) throw error;
-    return data;
+// Fetch user role from user_roles table
+async function fetchUserRole(userId) {
+    const { data, error } = await sb.from('user_roles').select('role').eq('user_id', userId).maybeSingle();
+    if (error) return null;
+    return data?.role || null;
 }
 
-function showMessage(containerId, message, type) {
-    const container = document.getElementById(containerId);
-    let msgDiv = container.querySelector('.message');
-    if (!msgDiv) {
-        msgDiv = document.createElement('div');
-        msgDiv.className = 'message';
-        container.appendChild(msgDiv);
-    }
-    msgDiv.textContent = message;
-    msgDiv.className = `message ${type}`;
-    msgDiv.style.display = 'block';
-    setTimeout(() => { msgDiv.style.display = 'none'; }, 4000);
+// Fetch user's assigned shops
+async function fetchUserShops(userId) {
+    const { data, error } = await sb.from('user_shops').select('shop_id').eq('user_id', userId);
+    if (error) return [];
+    return data.map(row => row.shop_id);
 }
-
-// For debugging: log that config loaded and supabase is ready
-console.log("config.js loaded. supabase client created:", typeof supabase.from);
