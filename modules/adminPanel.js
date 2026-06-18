@@ -1,4 +1,4 @@
-// modules/adminPanel.js – Full admin panel with shop filter
+// modules/adminPanel.js – Fixed token handling
 async function renderAdminPanel() {
     const container = document.getElementById('moduleContainer');
     
@@ -23,9 +23,21 @@ async function renderAdminPanel() {
 
     container.innerHTML = '<div class="loading">Loading admin panel...</div>';
     try {
-        const token = (await sb.auth.getSession()).data.session?.access_token;
-        if (!token) throw new Error('No session token. Please log in again.');
-        
+        // Get current session
+        const { data: { session }, error: sessionError } = await sb.auth.getSession();
+        if (sessionError) throw new Error(`Session error: ${sessionError.message}`);
+        if (!session) {
+            // Try to refresh the session
+            const { data: { session: refreshedSession }, error: refreshError } = await sb.auth.refreshSession();
+            if (refreshError || !refreshedSession) {
+                throw new Error('No active session. Please log in again.');
+            }
+            session = refreshedSession;
+        }
+        const token = session.access_token;
+        console.log('Token obtained:', token ? 'present (first 20 chars: ' + token.substring(0,20) + '...)' : 'missing');
+        if (!token) throw new Error('No access token available');
+
         const response = await fetch(EDGE_FUNCTION_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -33,6 +45,7 @@ async function renderAdminPanel() {
         });
         
         const rawText = await response.text();
+        console.log('Raw response:', rawText);
         let data;
         try {
             data = JSON.parse(rawText);
@@ -45,7 +58,7 @@ async function renderAdminPanel() {
         const { data: shops } = await sb.from('locations').select('id, name').eq('type', 'shop');
         const shopList = shops || [];
         
-        // Build the UI with a filter dropdown
+        // Build the UI (same as before)
         let html = `
             <h2>👥 Admin Panel – Manage Users & Permissions</h2>
             <div class="card">
@@ -93,7 +106,6 @@ async function renderAdminPanel() {
         `;
         container.innerHTML = html;
         
-        // Function to render the user table with filtering
         function renderUserTable(usersToRender) {
             const tbody = document.getElementById('userTableBody');
             if (!tbody) return;
@@ -182,13 +194,11 @@ async function renderAdminPanel() {
             }
         }
         
-        // Initial render without filter
         renderUserTable(users);
         
-        // Filtering logic
+        // Filter logic (same as before)
         const filterSelect = document.getElementById('shopFilter');
         const applyBtn = document.getElementById('applyFilterBtn');
-        
         applyBtn.onclick = () => {
             const selectedShopId = parseInt(filterSelect.value);
             if (selectedShopId === 'all' || isNaN(selectedShopId)) {
@@ -199,7 +209,7 @@ async function renderAdminPanel() {
             }
         };
         
-        // Create user button
+        // Create user
         document.getElementById('createUserBtn').onclick = async () => {
             const email = document.getElementById('newEmail').value.trim();
             const password = document.getElementById('newPassword').value;
