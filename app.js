@@ -58,6 +58,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', async () => {
     container.innerHTML = '<div class="loading">Please log in again.</div>';
 });
 
+// ========== SIDEBAR BUILDER ==========
 function buildSidebar(role) {
     const container = document.getElementById('dynamicButtons');
     container.innerHTML = '';
@@ -77,7 +78,8 @@ function buildSidebar(role) {
             { id: 'btnMinReceive', text: '✅ Min WH – Receive', module: 'minReceive' },
             { id: 'btnMinStock', text: '📊 Min WH – Stock', module: 'minStock' },
             { id: 'btnMinSend', text: '🛒 Min → Northern Shops', module: 'minSend' },
-            { id: 'btnShop', text: '🏪 Shop Module', module: 'shop' }
+            { id: 'btnShop', text: '🏪 Shop Module', module: 'shop' },
+            { id: 'btnArchive', text: '📦 Archive Data', module: 'archive' }
         ];
         buttons.forEach(btn => {
             const button = document.createElement('button');
@@ -95,6 +97,7 @@ function buildSidebar(role) {
     }
 }
 
+// ========== MODULE LOADER ==========
 function loadModule(moduleName) {
     if (currentUserRole === 'shopkeeper' && moduleName !== 'shop') {
         showMessage("Access denied: You are only allowed to access the Shop Module.", true);
@@ -104,13 +107,15 @@ function loadModule(moduleName) {
     allBtns.forEach(btn => btn.classList.remove('active'));
     const activeBtn = document.getElementById(`btn${moduleName.charAt(0).toUpperCase() + moduleName.slice(1)}`);
     if (activeBtn) activeBtn.classList.add('active');
+
     if (moduleName === 'admin') renderAdminPanel();
-    else if (moduleName === 'auditTrail') renderAuditTrail();
     else if (moduleName === 'productManagement') renderProductManagement();
     else if (moduleName === 'cancelSale') renderCancelSale();
     else if (moduleName === 'stockAdjust') renderStockAdjustment();
     else if (moduleName === 'expenses') renderExpenses();
     else if (moduleName === 'reports') renderReports();
+    else if (moduleName === 'auditTrail') renderAuditTrail();
+    else if (moduleName === 'archive') renderArchive();
     else if (moduleName === 'mainReceive') renderMainReceive();
     else if (moduleName === 'mainStock') renderMainStock();
     else if (moduleName === 'mainTransfer') renderMainTransfer();
@@ -120,6 +125,7 @@ function loadModule(moduleName) {
     else if (moduleName === 'minSend') renderMinSend();
     else if (moduleName === 'shop') renderShop();
 }
+
 function initializeApp(role) {
     buildSidebar(role);
     if (role === 'admin') loadModule('admin');
