@@ -1,4 +1,4 @@
-// modules/shop.js – Modern Till Interface with 2‑column product grid and shop selector for admin
+// modules/shop.js – Till interface with 2‑column product grid, search, and shop selector
 async function renderShop() {
     const container = document.getElementById('moduleContainer');
     let shops;
@@ -260,19 +260,26 @@ async function renderShop() {
         printWindow.document.close();
     }
 
-    // Render product grid (two columns)
-    function renderProductGrid() {
+    // Render product grid (two columns) with search filter
+    function renderProductGrid(searchTerm = '') {
         const gridContainer = document.getElementById('productGrid');
         if (!gridContainer) return;
         gridContainer.innerHTML = '';
+        const term = searchTerm.toLowerCase();
         products.forEach(product => {
             const stock = stockMap.get(product.id) || 0;
+            // Check if product matches search term
+            if (term) {
+                const nameMatch = product.name.toLowerCase().includes(term);
+                const packMatch = product.pack_size.toLowerCase().includes(term);
+                if (!nameMatch && !packMatch) return;
+            }
             const card = document.createElement('div');
             card.className = 'product-card';
             card.style.border = '1px solid #ddd';
             card.style.borderRadius = '8px';
             card.style.padding = '10px';
-            card.style.cursor = 'pointer';
+            card.style.cursor = stock > 0 ? 'pointer' : 'default';
             card.style.backgroundColor = stock === 0 ? '#f9f9f9' : 'white';
             card.style.opacity = stock === 0 ? '0.6' : '1';
             card.innerHTML = `
@@ -295,7 +302,7 @@ async function renderShop() {
         });
     }
 
-    // Render the till UI
+    // Render the till UI (includes shop selector, search bar)
     async function renderTill() {
         await loadProducts();
         stockMap = await refreshStockMap();
@@ -308,11 +315,17 @@ async function renderShop() {
                 .cart-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
                 .cart-table th, .cart-table td { border: 1px solid #ddd; padding: 6px; text-align: left; }
                 .total-row { margin-top: 15px; background: #f9f9f9; padding: 10px; border-radius: 8px; }
+                .search-bar { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px; }
             </style>
-            <h2>🏪 Point of Sale – ${shops.find(s => s.id == selectedShopId)?.name}</h2>
+            <div class="form-group">
+                <label>Select Shop:</label>
+                <select id="shopSelector">${shops.map(s => `<option value="${s.id}" ${s.id == selectedShopId ? 'selected' : ''}>${s.name}</option>`).join('')}</select>
+            </div>
+            <h2>🏪 Point of Sale – <span id="shopNameDisplay">${shops.find(s => s.id == selectedShopId)?.name}</span></h2>
             <div class="till-grid">
-                <!-- Left column: Product grid (2 columns) -->
+                <!-- Left column: Product grid with search -->
                 <div>
+                    <input type="text" id="productSearch" class="search-bar" placeholder="Search products (name or pack size)..." autocomplete="off">
                     <div class="product-grid" id="productGrid"></div>
                 </div>
                 <!-- Right column: Cart -->
@@ -361,7 +374,24 @@ async function renderShop() {
             </div>
         `;
 
+        // Render product grid initially
         renderProductGrid();
+
+        // Search event listener
+        const searchInput = document.getElementById('productSearch');
+        searchInput.addEventListener('input', function() {
+            const term = this.value;
+            renderProductGrid(term);
+        });
+
+        // Shop selector change event
+        document.getElementById('shopSelector').addEventListener('change', async (e) => {
+            selectedShopId = parseInt(e.target.value);
+            cart = [];
+            discountValue = 0;
+            discountType = 'fixed';
+            await renderTill();
+        });
 
         // Cart event listeners
         document.getElementById('cartItems').addEventListener('click', (e) => {
@@ -439,29 +469,11 @@ async function renderShop() {
                 showMessage(`✅ Received ${t.quantity} units.`, false);
                 await loadPendingTransfers();
                 stockMap = await refreshStockMap();
-                renderProductGrid();
+                renderProductGrid(document.getElementById('productSearch')?.value || '');
             });
         });
     }
 
-    // Shop selector (above the till)
-    const selectorDiv = document.createElement('div');
-    selectorDiv.className = 'form-group';
-    selectorDiv.innerHTML = `<label>Select Shop:</label><select id="shopSelector">${shops.map(s => `<option value="${s.id}" ${s.id == selectedShopId ? 'selected' : ''}>${s.name}</option>`).join('')}</select>`;
-    container.innerHTML = '';
-    container.appendChild(selectorDiv);
-    const tillDiv = document.createElement('div');
-    tillDiv.id = 'tillContainer';
-    container.appendChild(tillDiv);
-    window.tillContainer = tillDiv;
-
+    // Start the till
     await renderTill();
-
-    document.getElementById('shopSelector').addEventListener('change', async (e) => {
-        selectedShopId = parseInt(e.target.value);
-        cart = [];
-        discountValue = 0;
-        discountType = 'fixed';
-        await renderTill();
-    });
 }
