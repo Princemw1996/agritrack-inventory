@@ -2,18 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgriTrack – Rose Harris Investment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>Rose Harris Investment</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <!-- Modules will be loaded dynamically -->
 </head>
 <body>
     <!-- Login Screen -->
     <div id="loginScreen" class="login-container">
         <div class="login-card">
-            <h2>ROSE HARRIS INVESTMENT</h2>
+            <h2>Rose Harris Investment</h2>
             <h3>Secure Login</h3>
             <input type="email" id="loginEmail" placeholder="Email" autocomplete="off">
             <input type="password" id="loginPassword" placeholder="Password">
@@ -26,7 +25,10 @@
     <div id="appScreen" style="display: none;">
         <div class="app">
             <div class="sidebar" id="sidebarContainer">
-                <h2>🌾 AgriTrack</h2>
+                <div class="sidebar-header">
+                    <h2>Rose Harris Investment</h2>
+                    <button id="menuToggle" class="menu-toggle" aria-label="Toggle menu">☰</button>
+                </div>
                 <div id="dynamicButtons"></div>
                 <button id="logoutBtn" style="margin-top:20px; background:#dc3545;">🚪 Logout</button>
             </div>
@@ -37,9 +39,16 @@
             </div>
         </div>
     </div>
-    
 
+    <!-- All modules -->
     <script src="modules/adminPanel.js"></script>
+    <script src="modules/auditTrail.js"></script>
+    <script src="modules/productManagement.js"></script>
+    <script src="modules/cancelSale.js"></script>
+    <script src="modules/stockAdjustment.js"></script>
+    <script src="modules/expenses.js"></script>
+    <script src="modules/reports.js"></script>
+    <script src="modules/archive.js"></script>
     <script src="modules/mainReceive.js"></script>
     <script src="modules/mainStock.js"></script>
     <script src="modules/mainTransfer.js"></script>
@@ -48,14 +57,6 @@
     <script src="modules/minStock.js"></script>
     <script src="modules/minSend.js"></script>
     <script src="modules/shop.js"></script>
-    <script src="modules/cancelSale.js"></script>
-    <script src="modules/stockAdjustment.js"></script>
-    <script src="modules/expenses.js"></script>
-    <script src="modules/reports.js"></script>
-    <script src="modules/productManagement.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-    <script src="modules/auditTrail.js"></script>
-    <script src="modules/archive.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

@@ -96,7 +96,30 @@ function buildSidebar(role) {
         container.appendChild(button);
     }
 }
-
+// Sidebar toggle for mobile
+function setupSidebarToggle() {
+    const toggleBtn = document.getElementById('menuToggle');
+    const dynamicBtns = document.getElementById('dynamicButtons');
+    if (toggleBtn && dynamicBtns) {
+        toggleBtn.addEventListener('click', () => {
+            dynamicBtns.classList.toggle('open');
+        });
+        // Close sidebar when a button is clicked (on mobile)
+        document.querySelectorAll('#dynamicButtons button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    dynamicBtns.classList.remove('open');
+                }
+            });
+        });
+    }
+}
+function initializeApp(role) {
+    buildSidebar(role);
+    setupSidebarToggle();
+    if (role === 'admin') loadModule('admin');
+    else loadModule('shop');
+}
 // ========== MODULE LOADER ==========
 function loadModule(moduleName) {
     if (currentUserRole === 'shopkeeper' && moduleName !== 'shop') {
