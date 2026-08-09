@@ -75,8 +75,20 @@ function buildSidebar(role) {
             button.addEventListener('click', () => loadModule(btn.module));
             container.appendChild(button);
         });
-    } else if (role === 'shopkeeper' || role === 'revenue_collector') {
-        // For shopkeepers and revenue collectors, only show road user fee modules
+    } else if (role === 'revenue_collector') {
+        // Revenue collectors only see the collect fee button
+        const buttons = [
+            { id: 'btnRoadUserFee', text: '🚗 Collect Fee', module: 'roadUserFee' }
+        ];
+        buttons.forEach(btn => {
+            const button = document.createElement('button');
+            button.id = btn.id;
+            button.textContent = btn.text;
+            button.addEventListener('click', () => loadModule(btn.module));
+            container.appendChild(button);
+        });
+    } else if (role === 'shopkeeper') {
+        // Shopkeepers (if any) see both modules (or you can decide to show only collect fee)
         const buttons = [
             { id: 'btnRoadUserFee', text: '🚗 Collect Fee', module: 'roadUserFee' },
             { id: 'btnRoadUserFeeReport', text: '📊 MCC Report', module: 'roadUserFeeReport' }
@@ -118,6 +130,12 @@ function initializeApp(role) {
 
 // ========== MODULE LOADER ==========
 function loadModule(moduleName) {
+    // Security: restrict report access
+    if (moduleName === 'roadUserFeeReport' && currentUserRole !== 'admin') {
+        showMessage('Access denied: Only admins can view the report.', true);
+        return;
+    }
+
     const allBtns = document.querySelectorAll('#dynamicButtons button');
     allBtns.forEach(btn => btn.classList.remove('active'));
     const activeBtn = document.getElementById(`btn${moduleName.charAt(0).toUpperCase() + moduleName.slice(1)}`);
