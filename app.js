@@ -79,8 +79,8 @@ function buildSidebar(role) {
             { id: 'btnMinStock', text: '📊 Min WH – Stock', module: 'minStock' },
             { id: 'btnMinSend', text: '🛒 Min → Northern Shops', module: 'minSend' },
             { id: 'btnShop', text: '🏪 Shop Module', module: 'shop' },
-            { id: 'btnArchive', text: '📦 Archive Data', module: 'archive' }
-            { id: 'btnRoadUserFee', text: '🚗 MCC Road User Fee', module: 'roadUserFee' },
+            { id: 'btnArchive', text: '📦 Archive Data', module: 'archive' },
+            { id: 'btnRoadUserFee', text: '🚗 MCC Road User Fee', module: 'roadUserFee' }
         ];
         buttons.forEach(btn => {
             const button = document.createElement('button');
@@ -97,6 +97,7 @@ function buildSidebar(role) {
         container.appendChild(button);
     }
 }
+
 // Sidebar toggle for mobile
 function setupSidebarToggle() {
     const toggleBtn = document.getElementById('menuToggle');
@@ -105,7 +106,6 @@ function setupSidebarToggle() {
         toggleBtn.addEventListener('click', () => {
             dynamicBtns.classList.toggle('open');
         });
-        // Close sidebar when a button is clicked (on mobile)
         document.querySelectorAll('#dynamicButtons button').forEach(btn => {
             btn.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
@@ -115,12 +115,7 @@ function setupSidebarToggle() {
         });
     }
 }
-function initializeApp(role) {
-    buildSidebar(role);
-    setupSidebarToggle();
-    if (role === 'admin') loadModule('admin');
-    else loadModule('shop');
-}
+
 // ========== MODULE LOADER ==========
 function loadModule(moduleName) {
     if (currentUserRole === 'shopkeeper' && moduleName !== 'shop') {
@@ -153,6 +148,7 @@ function loadModule(moduleName) {
 
 function initializeApp(role) {
     buildSidebar(role);
+    setupSidebarToggle();
     if (role === 'admin') loadModule('admin');
     else loadModule('shop');
 }
