@@ -80,6 +80,7 @@ function buildSidebar(role) {
             { id: 'btnMinSend', text: '🛒 Min → Northern Shops', module: 'minSend' },
             { id: 'btnShop', text: '🏪 Shop Module', module: 'shop' },
             { id: 'btnArchive', text: '📦 Archive Data', module: 'archive' }
+            { id: 'btnRoadUserFee', text: '🚗 MCC Road User Fee', module: 'roadUserFee' },
         ];
         buttons.forEach(btn => {
             const button = document.createElement('button');
@@ -147,6 +148,7 @@ function loadModule(moduleName) {
     else if (moduleName === 'minStock') renderMinStock();
     else if (moduleName === 'minSend') renderMinSend();
     else if (moduleName === 'shop') renderShop();
+    else if (moduleName === 'roadUserFee') renderRoadUserFee();
 }
 
 function initializeApp(role) {
