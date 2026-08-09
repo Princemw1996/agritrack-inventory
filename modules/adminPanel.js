@@ -1,4 +1,4 @@
-// modules/adminPanel.js – Fixed token handling
+// modules/adminPanel.js – Updated to support revenue_collector role
 async function renderAdminPanel() {
     const container = document.getElementById('moduleContainer');
     
@@ -23,11 +23,9 @@ async function renderAdminPanel() {
 
     container.innerHTML = '<div class="loading">Loading admin panel...</div>';
     try {
-        // Get current session
         const { data: { session }, error: sessionError } = await sb.auth.getSession();
         if (sessionError) throw new Error(`Session error: ${sessionError.message}`);
         if (!session) {
-            // Try to refresh the session
             const { data: { session: refreshedSession }, error: refreshError } = await sb.auth.refreshSession();
             if (refreshError || !refreshedSession) {
                 throw new Error('No active session. Please log in again.');
@@ -35,7 +33,6 @@ async function renderAdminPanel() {
             session = refreshedSession;
         }
         const token = session.access_token;
-        console.log('Token obtained:', token ? 'present (first 20 chars: ' + token.substring(0,20) + '...)' : 'missing');
         if (!token) throw new Error('No access token available');
 
         const response = await fetch(EDGE_FUNCTION_URL, {
@@ -45,7 +42,6 @@ async function renderAdminPanel() {
         });
         
         const rawText = await response.text();
-        console.log('Raw response:', rawText);
         let data;
         try {
             data = JSON.parse(rawText);
@@ -57,8 +53,11 @@ async function renderAdminPanel() {
         const users = data.users;
         const { data: shops } = await sb.from('locations').select('id, name').eq('type', 'shop');
         const shopList = shops || [];
-        
-        // Build the UI (same as before)
+
+        // Define available roles (excluding 'revenue_collector' from shop assignment)
+        const roleOptions = ['shopkeeper', 'admin', 'revenue_collector'];
+        const rolesWithShops = ['shopkeeper']; // only shopkeeper role gets shop assignments
+
         let html = `
             <h2>👥 Admin Panel – Manage Users & Permissions</h2>
             <div class="card">
@@ -80,11 +79,11 @@ async function renderAdminPanel() {
                     <div style="flex:1"><label>Password</label><input type="password" id="newPassword"></div>
                     <div style="flex:1"><label>Role</label>
                         <select id="newRole">
-                            <option value="shopkeeper">Shopkeeper</option>
-                            <option value="admin">Admin</option>
+                            ${roleOptions.map(r => `<option value="${r}">${r.charAt(0).toUpperCase() + r.slice(1)}</option>`).join('')}
                         </select>
                     </div>
-                    <div style="flex:1"><label>Assign Shops (for shopkeeper)</label>
+                    <div style="flex:1" id="shopAssignmentDiv">
+                        <label>Assign Shops (for shopkeeper):</label>
                         <select id="newShops" multiple size="3">
                             ${shopList.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
                         </select>
@@ -105,7 +104,17 @@ async function renderAdminPanel() {
             </div>
         `;
         container.innerHTML = html;
-        
+
+        // Toggle shop assignment visibility based on role selection
+        const roleSelect = document.getElementById('newRole');
+        const shopDiv = document.getElementById('shopAssignmentDiv');
+        roleSelect.addEventListener('change', () => {
+            const role = roleSelect.value;
+            shopDiv.style.display = role === 'shopkeeper' ? 'block' : 'none';
+        });
+        // Initial state
+        shopDiv.style.display = roleSelect.value === 'shopkeeper' ? 'block' : 'none';
+
         function renderUserTable(usersToRender) {
             const tbody = document.getElementById('userTableBody');
             if (!tbody) return;
@@ -120,8 +129,7 @@ async function renderAdminPanel() {
                 const roleCell = row.insertCell();
                 const roleSelect = document.createElement('select');
                 roleSelect.innerHTML = `
-                    <option value="shopkeeper" ${user.role === 'shopkeeper' ? 'selected' : ''}>Shopkeeper</option>
-                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    ${roleOptions.map(r => `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`).join('')}
                 `;
                 roleCell.appendChild(roleSelect);
                 
@@ -130,15 +138,19 @@ async function renderAdminPanel() {
                 shopsDiv.style.display = 'flex';
                 shopsDiv.style.flexDirection = 'column';
                 shopsDiv.style.gap = '5px';
-                for (const shop of shopList) {
-                    const label = document.createElement('label');
-                    const cb = document.createElement('input');
-                    cb.type = 'checkbox';
-                    cb.value = shop.id;
-                    cb.checked = user.shopIds.includes(shop.id);
-                    label.appendChild(cb);
-                    label.appendChild(document.createTextNode(` ${shop.name}`));
-                    shopsDiv.appendChild(label);
+                if (user.role === 'shopkeeper') {
+                    for (const shop of shopList) {
+                        const label = document.createElement('label');
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.value = shop.id;
+                        cb.checked = user.shopIds.includes(shop.id);
+                        label.appendChild(cb);
+                        label.appendChild(document.createTextNode(` ${shop.name}`));
+                        shopsDiv.appendChild(label);
+                    }
+                } else {
+                    shopsDiv.textContent = '—';
                 }
                 shopsCell.appendChild(shopsDiv);
                 
@@ -196,7 +208,7 @@ async function renderAdminPanel() {
         
         renderUserTable(users);
         
-        // Filter logic (same as before)
+        // Filter logic
         const filterSelect = document.getElementById('shopFilter');
         const applyBtn = document.getElementById('applyFilterBtn');
         applyBtn.onclick = () => {

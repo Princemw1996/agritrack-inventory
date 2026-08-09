@@ -65,22 +65,8 @@ function buildSidebar(role) {
     if (role === 'admin') {
         const buttons = [
             { id: 'btnAdmin', text: '👥 Admin Panel', module: 'admin' },
-            { id: 'btnProductManagement', text: '📦 Manage Products', module: 'productManagement' },
-            { id: 'btnCancelSale', text: '❌ Cancel Sale', module: 'cancelSale' },
-            { id: 'btnStockAdjust', text: '📦 Stock Adjustment', module: 'stockAdjust' },
-            { id: 'btnExpenses', text: '💸 Expenses', module: 'expenses' },
-            { id: 'btnReports', text: '📊 Reports', module: 'reports' },
-            { id: 'btnAuditTrail', text: '📜 Audit Trail', module: 'auditTrail' },
-            { id: 'btnMainReceive', text: '📦 Main WH – Receive', module: 'mainReceive' },
-            { id: 'btnMainStock', text: '📊 Main WH – Stock', module: 'mainStock' },
-            { id: 'btnMainTransfer', text: '🚚 Main → Min WH', module: 'mainTransfer' },
-            { id: 'btnMainToShops', text: '🚚 Main → Lilongwe/Blantyre', module: 'mainToShops' },
-            { id: 'btnMinReceive', text: '✅ Min WH – Receive', module: 'minReceive' },
-            { id: 'btnMinStock', text: '📊 Min WH – Stock', module: 'minStock' },
-            { id: 'btnMinSend', text: '🛒 Min → Northern Shops', module: 'minSend' },
-            { id: 'btnShop', text: '🏪 Shop Module', module: 'shop' },
-            { id: 'btnArchive', text: '📦 Archive Data', module: 'archive' },
-            { id: 'btnRoadUserFee', text: '🚗 MCC Road User Fee', module: 'roadUserFee' }
+            { id: 'btnRoadUserFee', text: '🚗 Collect Fee', module: 'roadUserFee' },
+            { id: 'btnRoadUserFeeReport', text: '📊 MCC Report', module: 'roadUserFeeReport' }
         ];
         buttons.forEach(btn => {
             const button = document.createElement('button');
@@ -89,12 +75,19 @@ function buildSidebar(role) {
             button.addEventListener('click', () => loadModule(btn.module));
             container.appendChild(button);
         });
-    } else if (role === 'shopkeeper') {
-        const button = document.createElement('button');
-        button.id = 'btnShop';
-        button.textContent = '🏪 Shop Module';
-        button.addEventListener('click', () => loadModule('shop'));
-        container.appendChild(button);
+    } else if (role === 'shopkeeper' || role === 'revenue_collector') {
+        // For shopkeepers and revenue collectors, only show road user fee modules
+        const buttons = [
+            { id: 'btnRoadUserFee', text: '🚗 Collect Fee', module: 'roadUserFee' },
+            { id: 'btnRoadUserFeeReport', text: '📊 MCC Report', module: 'roadUserFeeReport' }
+        ];
+        buttons.forEach(btn => {
+            const button = document.createElement('button');
+            button.id = btn.id;
+            button.textContent = btn.text;
+            button.addEventListener('click', () => loadModule(btn.module));
+            container.appendChild(button);
+        });
     }
 }
 
@@ -116,41 +109,27 @@ function setupSidebarToggle() {
     }
 }
 
+function initializeApp(role) {
+    buildSidebar(role);
+    setupSidebarToggle();
+    // Default module: roadUserFee for all users
+    loadModule('roadUserFee');
+}
+
 // ========== MODULE LOADER ==========
 function loadModule(moduleName) {
-    if (currentUserRole === 'shopkeeper' && moduleName !== 'shop') {
-        showMessage("Access denied: You are only allowed to access the Shop Module.", true);
-        return;
-    }
     const allBtns = document.querySelectorAll('#dynamicButtons button');
     allBtns.forEach(btn => btn.classList.remove('active'));
     const activeBtn = document.getElementById(`btn${moduleName.charAt(0).toUpperCase() + moduleName.slice(1)}`);
     if (activeBtn) activeBtn.classList.add('active');
 
     if (moduleName === 'admin') renderAdminPanel();
-    else if (moduleName === 'productManagement') renderProductManagement();
-    else if (moduleName === 'cancelSale') renderCancelSale();
-    else if (moduleName === 'stockAdjust') renderStockAdjustment();
-    else if (moduleName === 'expenses') renderExpenses();
-    else if (moduleName === 'reports') renderReports();
-    else if (moduleName === 'auditTrail') renderAuditTrail();
-    else if (moduleName === 'archive') renderArchive();
-    else if (moduleName === 'mainReceive') renderMainReceive();
-    else if (moduleName === 'mainStock') renderMainStock();
-    else if (moduleName === 'mainTransfer') renderMainTransfer();
-    else if (moduleName === 'mainToShops') renderMainToShops();
-    else if (moduleName === 'minReceive') renderMinReceive();
-    else if (moduleName === 'minStock') renderMinStock();
-    else if (moduleName === 'minSend') renderMinSend();
-    else if (moduleName === 'shop') renderShop();
     else if (moduleName === 'roadUserFee') renderRoadUserFee();
-}
-
-function initializeApp(role) {
-    buildSidebar(role);
-    setupSidebarToggle();
-    if (role === 'admin') loadModule('admin');
-    else loadModule('shop');
+    else if (moduleName === 'roadUserFeeReport') renderRoadUserFeeReport();
+    else {
+        showMessage('Module not available.', true);
+        loadModule('roadUserFee');
+    }
 }
 
 checkSession();

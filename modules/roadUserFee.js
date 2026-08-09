@@ -41,7 +41,7 @@ async function renderRoadUserFee() {
         <body>
             <div class="receipt">
                 <div class="header">
-                    <h1>🌾 MZUZU CITY COUNCIL</h1>
+                    <h1> MZUZU CITY COUNCIL</h1>
                     <p>Road User Fee Collection</p>
                     <p><strong>Receipt #:</strong> ${data.receipt_number}</p>
                 </div>
